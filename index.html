@@ -23,41 +23,95 @@
     <section id="home">
         <div class="overlay">
             <h1>Welcome to My Portfolio</h1>
-            <p>Hi, I'm Bendegúz Horváth, a [Your Profession].</p>
+            <p>Hi, I'm Bendegúz Horváth, a Financial Mathematics student at Corvinus University of Budapest.</p>
         </div>
-    </section>
-
-    <section id="about" class="container">
-        <h2>About Me</h2>
-        <p><a href="about.html">About</a></p>
     </section>
 
     <section id="projects" class="container">
     <h2>My Projects</h2>
-    <div class="project-cards">
-        <div class="card">
-            <img src="project1.jpg" alt="Project 1 Image">
-            <h3>Project 1</h3>
-            <p>Description of your project.</p>
-            <a href="#">View on GitHub</a>
+    <div class="project-slider">
+        <button class="scroll-btn left-btn">&lt;</button>
+        <div class="project-cards-wrapper">
+            <div class="project-cards">
+                <a href="https://github.com/yourusername/project1" class="card">
+                    <img src="project1.jpg" alt="Project 1 Image">
+                    <h3>Project 1</h3>
+                    <p>Description of your project.</p>
+                    <span class="tag">Tag 1</span>
+                </a>
+                <a href="https://github.com/yourusername/project2" class="card">
+                    <img src="project2.jpg" alt="Project 2 Image">
+                    <h3>Project 2</h3>
+                    <p>Description of your project.</p>
+                    <span class="tag">Tag 2</span>
+                </a>
+                <!-- Add more cards as needed -->
+            </div>
         </div>
-        <div class="card">
-            <img src="project2.jpg" alt="Project 2 Image">
-            <h3>Project 2</h3>
-            <p>Description of your project.</p>
-            <a href="#">View on GitHub</a>
-        </div>
-        <!-- Add more cards as needed -->
+        <button class="scroll-btn right-btn">&gt;</button>
     </div>
 </section>
 
+    <section id="about" class="container">
+        <p class="about-link"><a href="about.html">You can find profile description and my resume here</a></p>
+    </section>
+
     <section id="contact" class="container">
         <h2>Contact Me</h2>
-        <p>Email me at: <a href="mailto:your.email@example.com">your.email@example.com</a></p>
+        <p>Email me at: <a href="mailto:">horvath.bobek@gmail.com</a></p>
     </section>
 
     <footer>
-        <p>&copy; 2024 Your Name. All rights reserved.</p>
+        <p>&copy; 2024 Horváth Bendegúz. All rights reserved.</p>
     </footer>
+    <script>
+        const leftBtn = document.querySelector('.left-btn');
+        const rightBtn = document.querySelector('.right-btn');
+        const projectCardsWrapper = document.querySelector('.project-cards-wrapper');
+
+        leftBtn.addEventListener('click', () => {
+            projectCardsWrapper.scrollBy({
+                top: 0,
+                left: -300,
+                behavior: 'smooth'
+            });
+        });
+
+        rightBtn.addEventListener('click', () => {
+            projectCardsWrapper.scrollBy({
+                top: 0,
+                left: 300,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+    <script>
+        const projectCardsWrapper = document.querySelector('.project-cards-wrapper');
+        const cards = document.querySelectorAll('.card');
+
+        function updateCardStyles() {
+        const wrapperRect = projectCardsWrapper.getBoundingClientRect();
+        const wrapperCenter = wrapperRect.width / 2;
+
+        cards.forEach(card => {
+            const cardRect = card.getBoundingClientRect();
+            const cardCenter = cardRect.left + cardRect.width / 2;
+            const distanceFromCenter = Math.abs(wrapperCenter - cardCenter);
+            const maxDistance = wrapperRect.width / 2;
+
+            // Adjust scaling and translation to make 3D effect smaller
+            const scale = 1 - (distanceFromCenter / maxDistance) * 0.1; // Scale down less
+            const translateZ = (distanceFromCenter / maxDistance) * 100; // Translate less
+
+            card.style.transform = `scale(${scale}) translateZ(${translateZ}px)`;
+        });
+    }
+
+        projectCardsWrapper.addEventListener('scroll', updateCardStyles);
+        window.addEventListener('resize', updateCardStyles);
+
+        updateCardStyles(); // Initial call to set styles
+    </script>
+
 </body>
 </html>
