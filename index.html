@@ -11,10 +11,10 @@
     <header>
     <nav>
         <ul>
-            <li><a href="#home">Home</a></li>
-            <li><a href="about.html">About</a></li> <!-- Updated Link -->
-            <li><a href="#projects">Projects</a></li>
-            <li><a href="#contact">Contact</a></li>
+            <li><a href="#home" class="nav-link">Home</a></li>
+            <li><a href="#projects" class="nav-link">Projects</a></li>
+            <li><a href="about.html" class="nav-link">Resume</a></li>
+            <li><a href="#contact" class="nav-link">Contact</a></li>
         </ul>
     </nav>
 </header>
@@ -22,8 +22,18 @@
 
     <section id="home">
         <div class="overlay">
+            <div class="branding">
+                <img src="Pics/egyeni_Bendi.JPG" alt="Your Picture" class="profile-pic">
+                <div class="branding-text">
+                    <h2>Horváth Bendegúz</h2>
+                    <p>Quant Developer Intern</p>
+                </div>
+            </div>
             <h1>Welcome to My Portfolio</h1>
-            <p>Hi, I'm Bendegúz Horváth, a Financial Mathematics student at Corvinus University of Budapest.</p>
+            <p>Hi, I'm Bendegúz Győző Horváth, currently studying Financial Mathematics at Corvinus University of
+                Budapest. Specialized in quantitative finance, I thrive on challenging myself with
+                personal projects that help me evolve my skill and broaden my knowledge.</p>
+            <p>Explore my projects and dive into my resume to learn more about my journey and expertise.</p>
         </div>
     </section>
 
@@ -33,18 +43,31 @@
         <button class="scroll-btn left-btn">&lt;</button>
         <div class="project-cards-wrapper">
             <div class="project-cards">
-                <a href="https://github.com/yourusername/project1" class="card">
-                    <img src="project1.jpg" alt="Project 1 Image">
-                    <h3>Project 1</h3>
-                    <p>Description of your project.</p>
-                    <span class="tag">Tag 1</span>
+                <a href="https://github.com/Bendi71/ProjectQ/tree/main/ML/NeuroKit" class="card">
+                    <img src="Pics/DecisionBoundary.png" alt="NeuroKit Image">
+                    <h3>NeuroKit</h3>
+                    <p>NeuroKit is a Python package designed to simplify
+                        the process of building neural networks
+                        using just NumPy. It offers a Keras-like
+                        interface with essential features such as various
+                        activation functions, loss functions, metrics,
+                        optimizers, and early stopping mechanisms.
+                        This package aims to provide a clear tool
+                        for using neural network and is
+                        continuously being enhanced with
+                        additional functionalities.</p>
+                    <span class="tag">ML</span>
                 </a>
-                <a href="https://github.com/yourusername/project2" class="card">
-                    <img src="project2.jpg" alt="Project 2 Image">
-                    <h3>Project 2</h3>
-                    <p>Description of your project.</p>
-                    <span class="tag">Tag 2</span>
+                <a href="https://github.com/Bendi71/ProjectQ/blob/main/ML/Number_image_recognition.ipynb" class="card">
+                    <img src="Pics/MNIST.png" alt="MNIST example">
+                    <h3>MNIST dataset prediction</h3>
+                    <p>Used MNIST dataset to train a neural network for handwritten digit recognition. Used
+                        convolutional neural networks to achieve better accuracy and compared the results with
+                        different models. The model scored 99,55% accuracy on test dataset.</p>
+                    </p>
+                    <span class="tag">ML</span>
                 </a>
+
                 <!-- Add more cards as needed -->
             </div>
         </div>
@@ -53,17 +76,22 @@
 </section>
 
     <section id="about" class="container">
-        <p class="about-link"><a href="about.html">You can find profile description and my resume here</a></p>
+        <p class="about-link"><a href="about.html">You can find my resume here</a></p>
     </section>
 
     <section id="contact" class="container">
         <h2>Contact Me</h2>
         <p>Email me at: <a href="mailto:">horvath.bobek@gmail.com</a></p>
+        <div class="social-link">
+            <a href="https://www.linkedin.com/in/bendeg%C3%BAz-horv%C3%A1th-a9b04a255/" target="_blank">Connect with me on LinkedIn</a>
+        </div>
     </section>
 
     <footer>
-        <p>&copy; 2024 Horváth Bendegúz. All rights reserved.</p>
+        <p>&copy; 2024 Horváth Bendegúz Győző. All rights reserved.</p>
     </footer>
+
+    <!-- Add this script to enable scrolling functionality -->
     <script>
         const leftBtn = document.querySelector('.left-btn');
         const rightBtn = document.querySelector('.right-btn');
@@ -85,6 +113,8 @@
             });
         });
     </script>
+
+    <!-- Add this script to enable 3D card effect -->
     <script>
         const projectCardsWrapper = document.querySelector('.project-cards-wrapper');
         const cards = document.querySelectorAll('.card');
@@ -112,6 +142,26 @@
 
         updateCardStyles(); // Initial call to set styles
     </script>
+
+    <!--Add this script to enable smooth scrolling -->
+    <script>
+    document.querySelectorAll('.nav-link').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            const targetId = this.getAttribute('href');
+            if (targetId.startsWith("#")) {
+                const targetElement = document.querySelector(targetId);
+                window.scrollTo({
+                    top: targetElement.offsetTop - 50, // Adjust the offset to account for fixed header height
+                    behavior: 'smooth'
+                });
+            } else {
+                window.location.href = targetId;
+            }
+        });
+    });
+</script>
 
 </body>
 </html>
