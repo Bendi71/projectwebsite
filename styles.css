@@ -27,6 +27,12 @@ header nav ul {
     justify-content: center;
 }
 
+header nav li.back-button {
+    position: absolute;
+    margin-left: 20px;
+    left: 0;
+}
+
 /* Resume part styling */
 header nav ul li {
     margin: 0 15px;
@@ -207,7 +213,7 @@ p {
 
 /* Container for About, Projects, and Contact Sections */
 .container {
-    padding: 80px 60px;
+    padding: 30px 60px;
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -237,10 +243,10 @@ h2 {
     background: #fff;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 500px; /* Increased width */
-    height: 600px; /* Increased height */
-    margin-right: 20px;
-    padding: 20px;
+    width: 430px; /* Increased width */
+    height: 540px; /* Increased height */
+    margin-right: 50px;
+    padding: 10px;
     color: #000428;
     text-align: center;
     text-decoration: none;
@@ -249,14 +255,14 @@ h2 {
     position: relative;
     display: block;
     flex-shrink: 0;
-    transform: scale(0.9); /* Adjusted for subtle 3D effect */
+    transform: scale(1); /* Adjusted for subtle 3D effect */
     text-wrap: initial;
 }
 
 /* Hover effect to enhance interaction */
 .card:hover {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* More pronounced shadow on hover */
-    transform: scale(1) translateZ(0); /* Reset transform on hover */
+    transform: scale(1.1) translateZ(0); /* Reset transform on hover */
     opacity: 1; /* Full opacity on hover */
 }
 
@@ -265,30 +271,30 @@ h2 {
     overflow-x: auto;
     scroll-behavior: smooth;
     white-space: nowrap;
-    width: 90%;
+    width: 80%;
     display: flex;
     position: relative;
-    padding: 0 100px; /* Space for fade effect */
+    padding: 40px 80px; /* Space for fade effect */
     perspective: 1000px; /* Adjust perspective for 3D effect */
 }
 
 .card img {
     height: auto;
     max-width: 100%;
-    max-height: 300px;
+    max-height: 280px;
     border-radius: 10px;
-    margin-bottom: 15px;
-    margin-top: 10px;
+    margin-bottom: 5px;
+    margin-top: 5px;
 }
 
 .card h3 {
-    margin-top: 10px;
+    margin-top: 0px;
 }
 
 .card p {
     font-size: 1em;
-    margin-top: 10px;
-    padding: 0 10px; /* Adjust padding for better fit */
+    margin-top: -15px;
+    padding: 0 5px;
 }
 
 .scroll-btn {
@@ -323,7 +329,7 @@ h2 {
     left: 10px;
     background-color: rgba(0, 0, 0, 0.7);
     color: #fff;
-    padding: 10px 20px;
+    padding: 10px 10px;
     border-radius: 5px;
     font-size: 0.8em;
 }
@@ -498,7 +504,7 @@ footer {
 }
 
 #resume {
-    background: linear-gradient(90deg, rgba(0, 0, 50, 0.9), rgba(0, 0, 80, 0.9));;
+    background: linear-gradient(90deg, rgba(0, 0, 50, 0.9), rgba(0, 0, 100, 0.9));;
     padding: 20px;
     margin-top: 40px;
     color: #fff;
@@ -508,6 +514,23 @@ footer {
 }
 
 #resume h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: white;
+}
+
+/* For Project Pages */
+#notebook {
+    background: linear-gradient(90deg, rgba(0, 0, 50, 0.9), rgba(0, 0, 100, 0.9));;
+    padding: 20px;
+    margin-top: 40px;
+    color: #fff;
+    max-width: 1800px;
+    display: block;
+    text-align: center;
+}
+
+#notebook h2 {
     text-align: center;
     margin-bottom: 30px;
     color: white;
