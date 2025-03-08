@@ -20,7 +20,7 @@
 </header>
 
 
-    <section id="home">
+    <section id="home" class="home-section">
         <div class="overlay">
             <div class="branding">
                 <img src="Pics/egyeni_Bendi.JPG" alt="Your Picture" class="profile-pic">
@@ -39,15 +39,24 @@
 
     <section id="projects" class="container">
     <h2>My Projects</h2>
-        <!-- Add filter buttons here
+<!--         Add filter buttons here-->
         <div class="filter-buttons">
-        <button class="filter-btn active" data-filter="all">All</button>
-        <button class="filter-btn" data-filter="Machine Learning">Machine Learning</button>
-        <button class="filter-btn" data-filter="Finance">Finance</button>
-        <button class="filter-btn" data-filter="Data Science">Data Science</button>
-        <button class="filter-btn" data-filter="Programming">Programming</button>
+            <button class="filter-btn active" data-filter="all">
+                <span>All</span>
+            </button>
+            <button class="filter-btn" data-filter="Machine Learning">
+                <span>Machine Learning</span>
+            </button>
+            <button class="filter-btn" data-filter="Finance">
+                <span>Finance</span>
+            </button>
+            <button class="filter-btn" data-filter="Data Science">
+                <span>Data Science</span>
+            </button>
+            <button class="filter-btn" data-filter="Programming">
+                <span>Programming</span>
+            </button>
         </div>
-        -->
     <div class="project-slider">
         <button class="scroll-btn left-btn">&lt;</button>
         <div class="project-cards-wrapper">
@@ -134,6 +143,15 @@
                     <p>For my first web development project, I created a website designed to showcase and highlight various projects. The site features a clean, user-friendly interface with detailed descriptions and visual elements for each project, making it easy for visitors to explore and understand the work. This project served as a practical introduction to web development, focusing on design, layout, and functionality to effectively present my portfolio.</p>
                     <span class="tag">Programming</span>
                 </a>
+                <a href="Project-Pages/nonogram.html" class="card" data-category="Programming">
+                    <img src="Pics/nonogram.png" alt="Solved nonogram of MJ">
+                    <h3>Nonogram Generator and Solver</h3>
+                    <p>One of my favourite logical puzzle is Nonogram. In this project I created a Nonogram solver
+                        and generator. The solver uses a constraint satisfaction algorithm to solve the puzzle, while
+                        the generator creates a nonogram based on an image.
+                    </p>
+                    <span class="tag">Programming</span>
+                </a>
                 <a href="https://github.com/Bendi71/ProjectQ/blob/main/ML/Reinforcement%20Learning/Ticatactoe.py"
                    class="card" data-category="Machine Learning">
                     <img src="Pics/tictactoe.png" alt="TicTacToe Game">
@@ -199,7 +217,7 @@
     </section>
 
     <footer>
-        <p>&copy; 2024 Horváth Bendegúz Győző. All rights reserved.</p>
+        <p>&copy; 2025 Horváth Bendegúz Győző. All rights reserved.</p>
     </footer>
 
     <!-- Add this script to enable scrolling functionality -->
@@ -226,7 +244,7 @@
     </script>
 
     <!-- Add this script to enable 3D card effect -->
-    <script>
+    <!--<script>
         const projectCardsWrapper = document.querySelector('.project-cards-wrapper');
         const cards = document.querySelectorAll('.card');
 
@@ -252,7 +270,7 @@
         window.addEventListener('resize', updateCardStyles);
 
         updateCardStyles(); // Initial call to set styles
-    </script>
+    </script>-->
 
     <!--Add this script to enable smooth scrolling -->
     <script>
