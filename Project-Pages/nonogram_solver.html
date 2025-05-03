@@ -101,52 +101,58 @@
         
         .row-clues-container {
             display: flex;
-            align-items: flex-end;
+            align-items: center;
         }
         
         .row-clues {
             display: flex;
             flex-direction: column;
-            margin-right: 10px;
+            margin-right: 5px;
         }
         
         .row-clue {
-            min-height: 25px;
+            height: 25px;
             display: flex;
             justify-content: flex-end;
             align-items: center;
+            padding-right: 5px;
         }
         
         .clue-number {
             background: rgba(255, 215, 0, 0.2);
-            padding: 2px 5px;
-            margin: 0 2px;
+            padding: 2px 4px;
+            margin: 0 1px;
             border-radius: 3px;
             font-size: 12px;
-            min-width: 15px;
+            min-width: 12px;
             text-align: center;
         }
         
         .col-clues {
             display: flex;
             justify-content: center;
-            margin-bottom: 10px;
+            margin-bottom: 0;
         }
         
         .col-clue {
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-width: 25px;
+            justify-content: flex-end;
+            width: 25px;
+            margin: 0;
+            padding: 0;
         }
         
         .grid-container {
             border: 2px solid #FFD700;
             background: #2a2a2a;
+            margin-left: 0;
         }
         
         .grid-row {
             display: flex;
+            height: 25px;
         }
         
         .grid-cell {
@@ -162,6 +168,21 @@
         
         .grid-cell.empty {
             background: #fff;
+        }
+        
+        .grid-cell.unknown {
+            background: #ccc;
+            position: relative;
+        }
+        
+        .grid-cell.unknown::before {
+            content: "?";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            color: #777;
         }
         
         .image-preview {
@@ -189,22 +210,14 @@
         
         .progress-indicator {
             margin: 20px 0;
-            height: 20px;
-            background-color: #333;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        
-        .progress-bar {
-            height: 100%;
-            background-color: #FFD700;
-            width: 0;
-            transition: width 0.3s ease;
+            display: none; /* Hide the progress bar entirely */
         }
         
         #iterationDisplay {
             font-weight: bold;
-            margin: 5px 0;
+            margin: 15px 0;
+            font-size: 16px;
+            color: #FFD700;
         }
         
         .error-message {
@@ -268,6 +281,7 @@
                             <option value="15,15" selected>15x15</option>
                             <option value="20,20">20x20</option>
                             <option value="25,25">25x25</option>
+                            <option value="30,30">30x30</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -303,8 +317,8 @@
                         <img id="solutionImage" alt="Solution Image">
                     </div>
                     <div id="differenceImageContainer" class="image-item" style="display: none;">
-                        <h4>Difference</h4>
-                        <img id="differenceImage" alt="Difference Image">
+                        <h4>Accuracy Comparison</h4>
+                        <img id="differenceImage" alt="Accuracy Comparison Image">
                     </div>
                 </div>
             </div>
@@ -317,16 +331,10 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // API endpoint URLs - update these with your backend URL
-            // Dynamically determine the backend URL based on the environment
             const determineBaseUrl = () => {
-                // For development with localhost
                 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
                     return 'http://localhost:5000';
                 }
-                
-                // For GitHub Pages deployment with Heroku backend
-                // If you're using a different backend hosting service, modify this URL
                 return 'https://nonogram-solver-backend.herokuapp.com';
             };
             
@@ -341,7 +349,6 @@
                 CLEAN: (id) => `${BASE_URL}/clean/${id}`
             };
             
-            // DOM elements
             const imageUpload = document.getElementById('imageUpload');
             const sizeSelect = document.getElementById('sizeSelect');
             const thresholdSlider = document.getElementById('thresholdSlider');
@@ -361,7 +368,6 @@
             const uploadError = document.getElementById('uploadError');
             const solvingError = document.getElementById('solvingError');
             
-            // State variables
             let currentNonogramId = null;
             let currentIteration = 0;
             let totalIterations = 0;
@@ -369,34 +375,40 @@
             let colClues = [];
             let gridSize = [15, 15];
             
-            // Event listeners
             thresholdSlider.addEventListener('input', function() {
                 thresholdValue.textContent = this.value;
             });
             
             uploadBtn.addEventListener('click', uploadImage);
             solveBtn.addEventListener('click', startSolving);
-            nextStepBtn.addEventListener('click', showNextStep);
+            
+            nextStepBtn.addEventListener('click', function() {
+                console.log("Next Step button clicked!");
+                console.log("Current state:", {
+                    currentNonogramId,
+                    currentIteration,
+                    totalIterations,
+                    buttonDisabled: nextStepBtn.disabled
+                });
+                showNextStep();
+            });
+            
             completeSolutionBtn.addEventListener('click', showCompleteSolution);
             resetBtn.addEventListener('click', resetNonogram);
             
-            // Add a direct file preview functionality as fallback
             imageUpload.addEventListener('change', function() {
                 if (this.files && this.files[0]) {
                     const reader = new FileReader();
                     reader.onload = function(e) {
-                        // Show a preview of the image
                         const previewDiv = document.createElement('div');
                         previewDiv.className = 'image-preview';
                         previewDiv.innerHTML = `<h4>Image Preview</h4>
                                               <img src="${e.target.result}" alt="Preview" style="max-width: 200px; max-height: 200px;">`;
                         
-                        // Replace existing preview if any
                         const existingPreview = document.querySelector('.image-preview');
                         if (existingPreview) {
                             existingPreview.parentNode.replaceChild(previewDiv, existingPreview);
                         } else {
-                            // Add before the convert button
                             uploadBtn.parentNode.insertBefore(previewDiv, uploadBtn);
                         }
                     };
@@ -404,14 +416,12 @@
                 }
             });
             
-            // Functions
             function uploadImage() {
                 if (!imageUpload.files[0]) {
                     showError(uploadError, 'Please select an image to upload');
                     return;
                 }
                 
-                // Add a console.log to verify the file being uploaded
                 console.log("Selected file:", imageUpload.files[0].name, "Size:", imageUpload.files[0].size);
                 
                 const formData = new FormData();
@@ -419,7 +429,6 @@
                 formData.append('size', sizeSelect.value);
                 formData.append('threshold', thresholdSlider.value);
                 
-                // Log the form data for debugging
                 console.log("Form data preparation completed", {
                     size: sizeSelect.value,
                     threshold: thresholdSlider.value
@@ -429,15 +438,12 @@
                 uploadBtn.disabled = true;
                 uploadBtn.textContent = 'Processing...';
                 
-                // Log request details before sending
                 console.log("Sending request to:", ENDPOINTS.UPLOAD);
                 
                 fetch(ENDPOINTS.UPLOAD, {
                     method: 'POST',
                     body: formData,
-                    // Remove Access-Control-Allow-Origin header from client request
-                    // This header should be set by the server, not the client
-                    mode: 'cors', // Add CORS mode explicitly
+                    mode: 'cors',
                     credentials: 'same-origin'
                 })
                 .then(response => {
@@ -448,24 +454,20 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Log success response
                     console.log("Upload successful, received data:", data);
                     
-                    currentNonogramId = data.id; // Note: changed from data.nonogram_id to data.id
-                    gridSize = data.size.split('x').map(Number); // Parse "15x15" into [15, 15]
+                    currentNonogramId = data.id;
+                    gridSize = data.size.split('x').map(Number);
                     rowClues = data.row_clues;
                     colClues = data.col_clues;
                     
-                    // Create nonogram grid
                     createNonogramGrid(gridSize, rowClues, colClues);
                     
-                    // Clear any existing preview
                     const existingPreview = document.querySelector('.image-preview');
                     if (existingPreview) {
                         existingPreview.remove();
                     }
                     
-                    // Enable controls
                     solveBtn.disabled = false;
                     resetBtn.disabled = false;
                     
@@ -484,99 +486,91 @@
                 nonogramGrid.innerHTML = '';
                 
                 // Calculate max clues per row/column for layout
-                const maxRowClues = Math.max(...rowClues.map(clues => clues.length));
-                const maxColClues = Math.max(...colClues.map(clues => clues.length));
+                const maxRowClues = Math.max(...rowClues.map(clues => clues.length), 1);
+                const maxColClues = Math.max(...colClues.map(clues => clues.length), 1);
+                
+                // Create main container with CSS Grid layout
+                const gridContainer = document.createElement('div');
+                gridContainer.style.display = 'grid';
+                gridContainer.style.gridTemplateColumns = `${maxRowClues * 25}px repeat(${size[1]}, 25px)`;
+                gridContainer.style.gridTemplateRows = `${maxColClues * 25}px repeat(${size[0]}, 25px)`;
+                gridContainer.style.gap = '0px';
+                
+                // Create top-left empty corner
+                const cornerCell = document.createElement('div');
+                cornerCell.style.gridColumn = '1';
+                cornerCell.style.gridRow = '1';
+                gridContainer.appendChild(cornerCell);
                 
                 // Create column clues
-                const colCluesDiv = document.createElement('div');
-                colCluesDiv.className = 'col-clues';
-                
-                // Empty space for row clues alignment
-                for (let i = 0; i < maxRowClues; i++) {
-                    const emptyDiv = document.createElement('div');
-                    emptyDiv.style.width = '25px';
-                    emptyDiv.style.height = (maxColClues * 20) + 'px';
-                    colCluesDiv.appendChild(emptyDiv);
-                }
-                
-                // Actual column clues
                 for (let col = 0; col < size[1]; col++) {
-                    const colClueDiv = document.createElement('div');
-                    colClueDiv.className = 'col-clue';
+                    const colClueCell = document.createElement('div');
+                    colClueCell.style.gridColumn = `${col + 2}`;  // +2 because 1 is for row clues
+                    colClueCell.style.gridRow = '1';
+                    colClueCell.style.display = 'flex';
+                    colClueCell.style.flexDirection = 'column';
+                    colClueCell.style.justifyContent = 'flex-end';
+                    colClueCell.style.alignItems = 'center';
+                    colClueCell.style.height = `${maxColClues * 25}px`;
+                    colClueCell.style.width = '25px';
                     
-                    // Add empty spaces for alignment
-                    for (let i = 0; i < (maxColClues - colClues[col].length); i++) {
-                        const spacer = document.createElement('div');
-                        spacer.style.height = '20px';
-                        colClueDiv.appendChild(spacer);
-                    }
-                    
-                    // Add actual clues
-                    for (const clue of colClues[col]) {
+                    // Add clues with proper spacing at bottom
+                    for (let i = 0; i < colClues[col].length; i++) {
                         const clueSpan = document.createElement('span');
                         clueSpan.className = 'clue-number';
-                        clueSpan.textContent = clue;
-                        colClueDiv.appendChild(clueSpan);
+                        clueSpan.textContent = colClues[col][i];
+                        colClueCell.appendChild(clueSpan);
                     }
                     
-                    colCluesDiv.appendChild(colClueDiv);
+                    gridContainer.appendChild(colClueCell);
                 }
                 
-                nonogramGrid.appendChild(colCluesDiv);
-                
-                // Create row clues and grid
-                const rowCluesContainer = document.createElement('div');
-                rowCluesContainer.className = 'row-clues-container';
-                
-                // Row clues section
-                const rowCluesDiv = document.createElement('div');
-                rowCluesDiv.className = 'row-clues';
-                
-                // Grid container
-                const gridContainer = document.createElement('div');
-                gridContainer.className = 'grid-container';
-                
-                // Create rows
+                // Create rows with row clues and grid cells
                 for (let row = 0; row < size[0]; row++) {
-                    const rowClueDiv = document.createElement('div');
-                    rowClueDiv.className = 'row-clue';
+                    // Add row clues
+                    const rowClueCell = document.createElement('div');
+                    rowClueCell.style.gridColumn = '1';
+                    rowClueCell.style.gridRow = `${row + 2}`; // +2 because 1 is for column clues
+                    rowClueCell.style.display = 'flex';
+                    rowClueCell.style.flexDirection = 'row';
+                    rowClueCell.style.justifyContent = 'flex-end';
+                    rowClueCell.style.alignItems = 'center';
+                    rowClueCell.style.height = '25px';
+                    rowClueCell.style.width = `${maxRowClues * 25}px`;
+                    rowClueCell.style.paddingRight = '5px';
                     
-                    // Add clues for this row
-                    for (const clue of rowClues[row]) {
+                    // Add clues
+                    for (let i = 0; i < rowClues[row].length; i++) {
                         const clueSpan = document.createElement('span');
                         clueSpan.className = 'clue-number';
-                        clueSpan.textContent = clue;
-                        rowClueDiv.appendChild(clueSpan);
+                        clueSpan.textContent = rowClues[row][i];
+                        rowClueCell.appendChild(clueSpan);
                     }
                     
-                    // Ensure all rows have the same width for alignment
-                    while (rowClueDiv.children.length < maxRowClues) {
-                        const spacer = document.createElement('span');
-                        spacer.style.width = '25px';
-                        spacer.style.visibility = 'hidden';
-                        rowClueDiv.insertBefore(spacer, rowClueDiv.firstChild);
-                    }
+                    gridContainer.appendChild(rowClueCell);
                     
-                    rowCluesDiv.appendChild(rowClueDiv);
-                    
-                    // Create grid row
-                    const gridRow = document.createElement('div');
-                    gridRow.className = 'grid-row';
-                    
+                    // Add grid cells for this row
                     for (let col = 0; col < size[1]; col++) {
                         const cell = document.createElement('div');
                         cell.className = 'grid-cell';
                         cell.dataset.row = row;
                         cell.dataset.col = col;
-                        gridRow.appendChild(cell);
+                        cell.style.gridColumn = `${col + 2}`; // +2 because 1 is for row clues
+                        cell.style.gridRow = `${row + 2}`;    // +2 because 1 is for column clues
+                        gridContainer.appendChild(cell);
                     }
-                    
-                    gridContainer.appendChild(gridRow);
                 }
                 
-                rowCluesContainer.appendChild(rowCluesDiv);
-                rowCluesContainer.appendChild(gridContainer);
-                nonogramGrid.appendChild(rowCluesContainer);
+                // Add a border around the grid
+                const borderContainer = document.createElement('div');
+                borderContainer.style.border = '2px solid #FFD700';
+                borderContainer.style.gridColumn = `2 / span ${size[1]}`;
+                borderContainer.style.gridRow = `2 / span ${size[0]}`;
+                borderContainer.style.zIndex = '-1';
+                borderContainer.style.background = '#2a2a2a';
+                gridContainer.appendChild(borderContainer);
+                
+                nonogramGrid.appendChild(gridContainer);
             }
             
             function startSolving() {
@@ -601,18 +595,39 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Update display with first iteration
-                    updateGridFromImage(data.image);
-                    currentIteration = 0;
-                    totalIterations = data.total_iterations;
+                    console.log("Solve response data:", data);
                     
-                    // Update progress bar
-                    updateProgress(0, totalIterations);
-                    iterationDisplay.textContent = `Iteration: ${currentIteration}/${totalIterations}`;
+                    if (data.grid_data && Array.isArray(data.grid_data)) {
+                        updateGridFromRawData(data.grid_data);
+                    } else if (data.image) {
+                        updateGridFromImage(data.image);
+                    }
                     
-                    // Enable controls for stepping through solution
-                    nextStepBtn.disabled = false;
-                    completeSolutionBtn.disabled = false;
+                    currentIteration = data.iteration || 0;
+                    totalIterations = Math.max(data.total_iterations || 0, 10);
+                    
+                    console.log(`Setting iterations: current=${currentIteration}, total=${totalIterations}`);
+                    
+                    updateProgress(currentIteration, totalIterations);
+                    
+                    if (data.completed === true || data.is_complete === true) {
+                        iterationDisplay.textContent = 'Solution complete';
+                        
+                        if (data.solution_image || data.solution) {
+                            showSolutionImage(data.solution_image || data.solution);
+                        }
+                        if (data.difference_image || data.difference) {
+                            showDifferenceImage(data.difference_image || data.difference);
+                        }
+                        
+                        nextStepBtn.disabled = true;
+                        completeSolutionBtn.disabled = true;
+                    } else {
+                        iterationDisplay.textContent = `Iteration ${currentIteration}`;
+                        
+                        nextStepBtn.disabled = false;
+                        completeSolutionBtn.disabled = false;
+                    }
                     
                     solveBtn.disabled = true;
                     solveBtn.textContent = 'Solving';
@@ -626,83 +641,96 @@
             }
             
             function showNextStep() {
-                if (!currentNonogramId || currentIteration >= totalIterations) {
+                if (!currentNonogramId) {
+                    console.error("ERROR: No nonogram ID available - can't fetch next step");
+                    showError(solvingError, 'No nonogram puzzle loaded. Please upload an image first.');
                     return;
                 }
                 
                 solvingError.style.display = 'none';
                 nextStepBtn.disabled = true;
                 
-                console.log(`Requesting next iteration: ${currentIteration + 1} for nonogram ${currentNonogramId}`);
+                const nextIterationUrl = ENDPOINTS.NEXT_ITERATION(currentNonogramId, currentIteration + 1);
+                console.log(`Requesting next iteration with full URL: ${nextIterationUrl}`);
+                console.log(`Current state: ID=${currentNonogramId}, iteration=${currentIteration}/${totalIterations}`);
                 
-                // Show a loading state
                 iterationDisplay.textContent = `Loading iteration ${currentIteration + 1}...`;
                 
-                fetch(ENDPOINTS.NEXT_ITERATION(currentNonogramId, currentIteration + 1), {
-                    method: 'GET', // Explicitly set the method to GET
-                    mode: 'cors',
-                    credentials: 'same-origin',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Cache-Control': 'no-cache'
-                    }
-                })
-                .then(response => {
-                    console.log("Next iteration response status:", response.status);
-                    if (!response.ok) {
-                        // For 500 errors, provide more specific guidance
-                        if (response.status === 500) {
-                            throw new Error('Server error: The iteration processing failed. This might be due to an issue with the solution algorithm or server resources.');
+                setTimeout(() => {
+                    fetch(nextIterationUrl, {
+                        method: 'GET',
+                        mode: 'cors',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Cache-Control': 'no-cache'
+                        }
+                    })
+                    .then(response => {
+                        console.log("Next iteration response received:", response.status, response.statusText);
+                        if (!response.ok) {
+                            if (response.status === 500) {
+                                throw new Error('Server error: The iteration processing failed. This might be due to an issue with the solution algorithm or server resources.');
+                            } else if (response.status === 404) {
+                                throw new Error(`Nonogram ID ${currentNonogramId} not found on server. The session might have expired.`);
+                            } else {
+                                throw new Error(`Failed to get next iteration: ${response.status} ${response.statusText}`);
+                            }
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log("Next iteration data received:", data);
+                        
+                        if (data.total_iterations && data.total_iterations > totalIterations) {
+                            console.log(`Updating total iterations from ${totalIterations} to ${data.total_iterations}`);
+                            totalIterations = data.total_iterations;
+                        }
+                        
+                        if (data.completed !== true && data.is_complete !== true) {
+                            totalIterations = Math.max(totalIterations, currentIteration + 5);
+                        }
+                        
+                        if (data.grid_data && Array.isArray(data.grid_data)) {
+                            updateGridFromRawData(data.grid_data);
+                            currentIteration = data.iteration || (currentIteration + 1);
+                        } else if (data.image) {
+                            updateGridFromImage(data.image);
+                            currentIteration++;
                         } else {
-                            throw new Error(`Failed to get next iteration: ${response.status} ${response.statusText}`);
+                            throw new Error("No valid grid data or image received from server");
                         }
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("Next iteration data received:", data);
-                    
-                    // Update the grid with the new iteration image
-                    if (data.image) {
-                        updateGridFromImage(data.image);
-                        currentIteration++; // Only increment if we got valid data
                         
-                        // Update progress
                         updateProgress(currentIteration, totalIterations);
-                        iterationDisplay.textContent = `Iteration: ${currentIteration}/${totalIterations}`;
                         
-                        // Enable/disable buttons based on completion
-                        nextStepBtn.disabled = currentIteration >= totalIterations;
+                        const isComplete = data.completed === true || data.is_complete === true;
                         
-                        if (data.is_complete || currentIteration >= totalIterations) {
-                            completeNonogramSolution();
+                        if (isComplete) {
+                            iterationDisplay.textContent = `Solution complete`;
+                            
+                            if (data.solution_image || data.solution) {
+                                const imgData = data.solution || data.solution_image;
+                                showSolutionImage(imgData);
+                            }
+                            
+                            if (data.difference_image || data.difference) {
+                                const diffImgData = data.difference || data.difference_image;
+                                showDifferenceImage(diffImgData);
+                            }
+                            
+                            nextStepBtn.disabled = true;
+                            completeSolutionBtn.disabled = true;
+                        } else {
+                            iterationDisplay.textContent = `Iteration ${currentIteration}`;
+                            nextStepBtn.disabled = false;
                         }
-                    } else {
-                        console.error("No image data in next iteration response");
-                        showError(solvingError, 'Invalid data received for next iteration');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error getting next iteration:', error);
-                    
-                    // Try to recover by requesting the complete solution
-                    if (error.message.includes('500')) {
-                        showError(solvingError, error.message + ' Attempting to show the complete solution instead.');
-                        
-                        // Give the error message time to be seen, then try to get the complete solution
-                        setTimeout(() => {
-                            showCompleteSolution();
-                        }, 2000);
-                    } else {
+                    })
+                    .catch(error => {
+                        console.error('Error getting next iteration:', error);
                         showError(solvingError, 'Failed to get next step: ' + error.message);
-                    }
-                })
-                .finally(() => {
-                    // Always re-enable the button unless we've reached the end
-                    if (currentIteration < totalIterations) {
                         nextStepBtn.disabled = false;
-                    }
-                });
+                    });
+                }, 100);
             }
             
             function showCompleteSolution() {
@@ -718,64 +746,67 @@
             }
             
             function completeNonogramSolution() {
+                solutionImageContainer.style.display = 'none';
+                differenceImageContainer.style.display = 'none';
+                iterationDisplay.textContent = 'Loading complete solution...';
+                
                 fetch(ENDPOINTS.COMPLETED_SOLUTION(currentNonogramId), {
                     mode: 'cors',
-                    credentials: 'same-origin'
+                    credentials: 'same-origin',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache'
+                    }
                 })
                 .then(response => {
+                    console.log("Complete solution response status:", response.status);
                     if (!response.ok) {
-                        throw new Error('Failed to get completed solution');
+                        throw new Error(`Failed to get completed solution: ${response.status} ${response.statusText}`);
                     }
                     return response.json();
                 })
                 .then(data => {
-                    // Update grid with final solution
-                    updateGridFromImage(data.solution_image);
+                    console.log("Complete solution data received:", data);
                     
-                    // Show solution image - fix the image display
-                    if (data.solution_image) {
-                        console.log("Received solution image, displaying...");
-                        // Ensure the image has the correct data URL format
-                        const imgSrc = data.solution_image.startsWith('data:image') 
-                            ? data.solution_image 
-                            : `data:image/png;base64,${data.solution_image}`;
-                        
-                        solutionImage.src = imgSrc;
-                        solutionImageContainer.style.display = 'block';
-                    } else {
-                        console.error("No solution image received");
+                    if (data.solution_grid && Array.isArray(data.solution_grid)) {
+                        updateGridFromRawData(data.solution_grid);
+                    } else if (data.grid_data && Array.isArray(data.grid_data)) {
+                        updateGridFromRawData(data.grid_data);
+                    } else if (data.solution_image) {
+                        updateGridFromImage(data.solution_image);
+                    } else if (data.image) {
+                        updateGridFromImage(data.image);
                     }
                     
-                    // Handle difference image if available
-                    if (data.difference_image) {
-                        const diffImgSrc = data.difference_image.startsWith('data:image') 
-                            ? data.difference_image 
-                            : `data:image/png;base64,${data.difference_image}`;
-                            
-                        differenceImage.src = diffImgSrc;
-                        differenceImageContainer.style.display = 'block';
+                    if (data.total_iterations) {
+                        currentIteration = data.total_iterations;
                     }
                     
-                    // Update progress to complete
-                    currentIteration = data.total_iterations;
-                    totalIterations = data.total_iterations;
-                    updateProgress(totalIterations, totalIterations);
-                    iterationDisplay.textContent = `Completed in ${totalIterations} iterations`;
+                    iterationDisplay.textContent = `Solution complete`;
                     
-                    // Disable step controls
+                    if (data.solution || data.solution_image) {
+                        const imgData = data.solution || data.solution_image;
+                        showSolutionImage(imgData);
+                    }
+                    
+                    if (data.difference_image || data.difference) {
+                        const diffImgData = data.difference || data.difference_image;
+                        showDifferenceImage(diffImgData);
+                    }
+                    
                     nextStepBtn.disabled = true;
                     completeSolutionBtn.disabled = true;
                 })
                 .catch(error => {
-                    console.error('Error:', error);
+                    console.error('Error getting complete solution:', error);
                     showError(solvingError, 'Failed to get complete solution: ' + error.message);
                     completeSolutionBtn.disabled = false;
+                    nextStepBtn.disabled = false;
                 });
             }
             
             function resetNonogram() {
                 if (currentNonogramId) {
-                    // Clean up resources on server
                     fetch(ENDPOINTS.CLEAN(currentNonogramId), {
                         method: 'DELETE',
                         mode: 'cors',
@@ -783,57 +814,86 @@
                     }).catch(error => console.error('Failed to clean up:', error));
                 }
                 
-                // Reset UI state
                 currentNonogramId = null;
                 currentIteration = 0;
                 totalIterations = 0;
                 nonogramGrid.innerHTML = '';
                 progressBar.style.width = '0%';
-                iterationDisplay.textContent = 'Iteration: 0/0';
+                iterationDisplay.textContent = 'Iteration: 0';
                 
-                // Clear image history completely
                 solutionImageContainer.style.display = 'none';
                 differenceImageContainer.style.display = 'none';
                 
-                // Clear image source to prevent data from being stored in memory
                 solutionImage.src = '';
                 differenceImage.src = '';
                 
-                // Explicitly clear any image previews
                 const existingPreview = document.querySelector('.image-preview');
                 if (existingPreview) {
                     existingPreview.remove();
                 }
                 
-                // Reset buttons
                 solveBtn.disabled = true;
                 nextStepBtn.disabled = true;
                 completeSolutionBtn.disabled = true;
                 resetBtn.disabled = true;
                 uploadBtn.disabled = false;
                 
-                // Clear errors
                 uploadError.style.display = 'none';
                 solvingError.style.display = 'none';
                 
-                // Clear file input to prevent reusing the same file
                 imageUpload.value = '';
             }
             
+            function updateGridFromRawData(gridData) {
+                if (!gridData || !Array.isArray(gridData)) {
+                    console.error("No grid data received or invalid format");
+                    return;
+                }
+                
+                console.log("Processing grid data:", gridData);
+                
+                const cells = document.querySelectorAll('.grid-cell');
+                if (!cells.length) {
+                    console.error("No grid cells found in the DOM");
+                    return;
+                }
+                
+                console.log("Updating grid with dimensions:", gridSize[0], "x", gridSize[1]);
+                
+                cells.forEach(cell => {
+                    const row = parseInt(cell.dataset.row);
+                    const col = parseInt(cell.dataset.col);
+                    
+                    if (row >= gridData.length || col >= gridData[0].length) {
+                        console.warn(`Cell coordinates out of bounds: (${row}, ${col})`);
+                        return;
+                    }
+                    
+                    const cellState = Number(gridData[row][col]);
+                    
+                    if (cellState === 1) {
+                        cell.className = 'grid-cell filled';
+                    } else if (cellState === -1) {
+                        cell.className = 'grid-cell empty';
+                    } else {
+                        cell.className = 'grid-cell unknown';
+                    }
+                });
+                
+                console.log("Grid update complete");
+            }
+
             function updateGridFromImage(base64Image) {
                 if (!base64Image) {
                     console.error("No image data received");
                     return;
                 }
                 
-                // Handle the case where the backend may return image data in different formats
                 let imgSrc;
                 
-                // Check if the base64Image is a string that already includes the data URL prefix
                 if (typeof base64Image === 'string' && base64Image.startsWith('data:image')) {
                     imgSrc = base64Image;
                 } else if (typeof base64Image === 'string') {
-                    // If it's just the base64 string without the prefix
                     imgSrc = `data:image/png;base64,${base64Image}`;
                 } else {
                     console.error("Invalid image data format:", base64Image);
@@ -842,7 +902,6 @@
                 
                 console.log("Processing image...");
                 
-                // Create a temporary image to process
                 const img = new Image();
                 img.onload = function() {
                     console.log("Image loaded successfully, dimensions:", img.width, "x", img.height);
@@ -856,7 +915,6 @@
                     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
                     const pixels = imageData.data;
                     
-                    // Get all grid cells
                     const cells = document.querySelectorAll('.grid-cell');
                     if (!cells.length) {
                         console.error("No grid cells found in the DOM");
@@ -865,7 +923,6 @@
                     
                     console.log("Updating grid with dimensions:", gridSize[0], "x", gridSize[1]);
                     
-                    // Calculate pixel-to-cell ratio
                     const cellsPerRow = gridSize[1];
                     const cellWidth = img.width / cellsPerRow;
                     const cellHeight = img.height / gridSize[0];
@@ -874,23 +931,19 @@
                         const row = parseInt(cell.dataset.row);
                         const col = parseInt(cell.dataset.col);
                         
-                        // Calculate the center pixel of this cell in the image
                         const centerX = Math.floor(col * cellWidth + cellWidth / 2);
                         const centerY = Math.floor(row * cellHeight + cellHeight / 2);
                         
-                        // Make sure the coordinates are within bounds
                         if (centerX < 0 || centerX >= img.width || centerY < 0 || centerY >= img.height) {
                             console.warn(`Pixel coordinates out of bounds: (${centerX}, ${centerY})`);
                             return;
                         }
                         
-                        // Get pixel color (RGBA format, 4 bytes per pixel)
                         const pixelIndex = (centerY * img.width + centerX) * 4;
                         const r = pixels[pixelIndex];
                         const g = pixels[pixelIndex + 1];
                         const b = pixels[pixelIndex + 2];
                         
-                        // Use grayscale calculation to determine if cell is filled (dark) or empty (light)
                         const brightness = (r + g + b) / 3;
                         
                         if (brightness < 128) {
@@ -921,6 +974,44 @@
                 setTimeout(() => {
                     element.style.display = 'none';
                 }, 5000);
+            }
+
+            function showSolutionImage(imgData) {
+                if (!imgData) return;
+                
+                console.log("Displaying solution image...");
+                
+                const imgSrc = (typeof imgData === 'string' && imgData.startsWith('data:image')) 
+                    ? imgData 
+                    : `data:image/png;base64,${imgData}`;
+                
+                setTimeout(() => {
+                    solutionImage.onload = function() {
+                        console.log("Solution image loaded successfully");
+                        solutionImageContainer.style.display = 'block';
+                    };
+                    solutionImage.onerror = function() {
+                        console.error("Error loading solution image");
+                        showError(solvingError, "Failed to display solution image");
+                    };
+                    solutionImage.src = imgSrc;
+                }, 100);
+            }
+            
+            function showDifferenceImage(imgData) {
+                if (!imgData) return;
+                
+                const formattedDiffSrc = (typeof imgData === 'string' && imgData.startsWith('data:image')) 
+                    ? imgData 
+                    : `data:image/png;base64,${imgData}`;
+                
+                setTimeout(() => {
+                    differenceImage.onload = function() {
+                        console.log("Accuracy comparison image loaded successfully");
+                        differenceImageContainer.style.display = 'block';
+                    };
+                    differenceImage.src = formattedDiffSrc;
+                }, 200);
             }
         });
     </script>
